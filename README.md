@@ -124,6 +124,30 @@ The tests for Nightwatch are written using Mocha.
 
 See [Unit testing guide](https://nightwatchjs.org/guide/writing-tests/write-nodejs-unit-integration-tests.html) for more details.
 
+### Command completion hook
+
+Nightwatch supports an optional `globals.onCommandFinished(browser, info)` hook for observing command completion without patching the `browser` object. The hook is awaited when provided, and any hook errors are logged without failing the test run.
+
+```js
+module.exports = {
+  globals: {
+    async onCommandFinished(browser, info) {
+      const relevantCommands = new Set(['click', 'tap', 'assert.visible']);
+
+      if (info.status !== 'success' || !relevantCommands.has(info.fullName)) {
+        return;
+      }
+
+      await browser.perform(async function() {
+        // call your own screenshot buffering/capture logic here
+      });
+    }
+  }
+};
+```
+
+`info` includes: `name`, `fullName`, `namespace`, `args`, `status`, `result`, `error`, and `elapsedTime`.
+
 ### Other types of testing
 #### [Visual Regression Testing](https://nightwatchjs.org/guide/writing-tests/visual-regression-testing.html)
 

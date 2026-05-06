@@ -1,5 +1,20 @@
 import { NightwatchAPI } from './index';
 
+export interface NightwatchCommandFinishedPayload {
+  name: string;
+  fullName: string;
+  namespace?: string;
+  args: unknown[];
+  elapsedTime: number;
+  status: 'success' | 'error';
+  result: unknown;
+  error: null | {
+    name: string;
+    message: string;
+    stack?: string;
+  };
+}
+
 /**
  * @see https://nightwatchjs.org/guide/concepts/test-globals.html#external-test-globals
  */
@@ -211,4 +226,21 @@ export interface NightwatchInternalGlobals {
    * }
    */
   onBrowserQuit?(browser: NightwatchAPI): Promise<void>;
+
+  /**
+   * Called after each Nightwatch command completes.
+   *
+   * The callback is awaited by Nightwatch. Any callback errors are logged and do not fail the test.
+   *
+   * @example
+   * async onCommandFinished(browser, info) {
+   *   if (info.status === 'success' && info.fullName === 'click') {
+   *     await browser.saveScreenshot('last-click.png');
+   *   }
+   * }
+   */
+  onCommandFinished?(
+    browser: NightwatchAPI,
+    info: NightwatchCommandFinishedPayload
+  ): Promise<void>;
 }

@@ -1299,7 +1299,7 @@ export interface Nightwatch {
    *   },
    *
    *   // can define/overwrite test globals here;
-   *   // when using a third-party test runner only the global hooks onBrowserNavigate/onBrowserQuit are supported
+   *   // when using a third-party test runner only global hooks (e.g. onBrowserNavigate/onBrowserQuit/onCommandFinished) are supported
    *   globals: {},
    *
    *   // when the test runner used supports running tests in parallel;
