@@ -208,6 +208,55 @@ describe('.click()', function() {
         'appium:platformVersion': '15.5'
       }
     }).then(client => {
+      // iOS/Appium fast path: the element lookup is a single-element
+      // POST /element (WDA firstMatch), not POST /elements.
+      MockServer.addMock({
+        'url': '/wd/hub/session/13521-10219-202/element',
+        'postdata': {'using':'css selector','value':'#webdriver'},
+        'response': {
+          value: {
+            'element-6066-11e4-a52e-4f735466cecf': '5cc459b8-36a8-3042-8b4a-258883ea642b'
+          }
+        }
+      });
+
+      MockServer.addMock({
+        url: '/wd/hub/session/13521-10219-202/element/5cc459b8-36a8-3042-8b4a-258883ea642b/click',
+        response: {value: null}
+      }, true);
+
+      assert.strictEqual(client.api.browserName, null);
+      assert.strictEqual(client.api.platformName, 'iOS');
+
+      client.api.click('#webdriver', function(result) {
+        assert.strictEqual(result.value, null);
+      });
+
+      client.start(done);
+    });
+  });
+
+  it('client.click() - for native app with ios_fast_element_lookup disabled', function(done) {
+    Nightwatch.initW3CClient({
+      output: false,
+      silent: false,
+      ios_fast_element_lookup: false,
+      selenium: {
+        start_process: false,
+        use_appium: true,
+        port: 10195,
+        host: 'localhost'
+      },
+      desiredCapabilities: {
+        'appium:automationName': 'XCUITest',
+        browserName: null,
+        'appium:appPackage': 'org.wikimedia.wikipedia',
+        platformName: 'iOS',
+        'appium:deviceName': 'iPhone 13',
+        'appium:platformVersion': '15.5'
+      }
+    }).then(client => {
+      // Opting out must restore the plural lookup, unchanged.
       MockServer.addMock({
         'url': '/wd/hub/session/13521-10219-202/elements',
         'postdata': {'using':'css selector','value':'#webdriver'},
@@ -223,9 +272,6 @@ describe('.click()', function() {
         url: '/wd/hub/session/13521-10219-202/element/5cc459b8-36a8-3042-8b4a-258883ea642b/click',
         response: {value: null}
       }, true);
-
-      assert.strictEqual(client.api.browserName, null);
-      assert.strictEqual(client.api.platformName, 'iOS');
 
       client.api.click('#webdriver', function(result) {
         assert.strictEqual(result.value, null);
